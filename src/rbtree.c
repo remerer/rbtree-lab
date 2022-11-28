@@ -4,10 +4,12 @@
 
 rbtree *new_rbtree(void) {
   rbtree *p = (rbtree *)calloc(1, sizeof(rbtree));
+  node_t *nil = (node_t *)calloc(1, sizeof(node_t));
+  //nil 만들기( 메모리, 색상부여 )
+  nil->color = RBTREE_BLACK;
   // TODO: initialize struct if needed
-  p->root =  p->nil;  //root의 자식 어떻게 설정?
-  p->root->color = RBTREE_BLACK;
-
+  p->nil = nil;
+  p->root = nil;  //root의 자식 어떻게 설정?
   return p;
 }
 
@@ -56,9 +58,10 @@ static void right_rotate(rbtree *t, node_t *y){
 
 static void rbtree_insert_fixup(rbtree *t, node_t *z){ 
               //z = fixup position node
-  node_t *y;  //y = search node
+  node_t *y;  //y = uncle node
   while(z->parent->color == RBTREE_RED){
     if(z->parent == z->parent->parent->left){
+    //z의 parent가 왼쪽트리일 경우
       y = z->parent->parent->right;
       if(y->color == RBTREE_RED){
         z->parent->color = RBTREE_BLACK;
@@ -71,23 +74,39 @@ static void rbtree_insert_fixup(rbtree *t, node_t *z){
           z = z->parent;
           left_rotate(t,z);
         }
-        z->parent->color == RBTREE_BLACK;
+        z->parent->color = RBTREE_BLACK;
         z->parent->parent->color = RBTREE_RED;
         right_rotate(t,z->parent->parent);
       }
     }
     else{
-      while(0); // right - left 교환하여 작성
+    //z의 parent가 오른쪽트리일 경우
+      y = z->parent->parent->left;
+      if(y->color == RBTREE_RED){
+        z->parent->color = RBTREE_BLACK;
+        y->color = RBTREE_BLACK;
+        z->parent->parent->color = RBTREE_RED;
+        z = z->parent->parent;
+      }
+      else{
+        if (z == z->parent->left){
+          z = z->parent;
+          right_rotate(t,z);
+        }
+        z->parent->color = RBTREE_BLACK;
+        z->parent->parent->color = RBTREE_RED;
+        left_rotate(t,z->parent->parent);
+      }
     }
   }
-  t->root->color == RBTREE_BLACK;
+  t->root->color = RBTREE_BLACK;
 }
 
 node_t *rbtree_insert(rbtree *t, const key_t key) {
   //노드의 key값이 채워져있다고 가정
+  node_t *z = (node_t*)calloc(1, sizeof(node_t));
   node_t *y = t->nil;   //y   = parent node
   node_t *x = t->root;  //x   = search /insert position node
-  node_t *z;            //z   = insert node
   z->key = key;         //key = insert key
   while(x != t->nil){
     y = x;
